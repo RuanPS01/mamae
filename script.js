@@ -12,7 +12,7 @@ let uiOverlay, btnAmei, finalReveal;
 
 function init() {
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x3d0202); // Deeper red for contrast
+    // Background removed to allow HTML elements behind canvas to be visible
     
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.z = 5;

@@ -13,7 +13,7 @@
 }
 
 body {
-    background-color: var(--bg-color);
+    background-color: #3d0202; /* Moved from Three.js scene */
     margin: 0;
     overflow: hidden;
     height: 100vh;
@@ -29,7 +29,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1;
+    z-index: 5; /* Higher than the photo reveal */
 }
 
 /* UI Overlay - Letter HUD */
@@ -43,7 +43,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10;
+    z-index: 15; /* Higher than canvas to be clickable */
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.8s ease;
@@ -69,6 +69,7 @@ body {
     transform: translateY(50px) scale(0.9);
     transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.8s;
     overflow: hidden;
+    z-index: 20;
     
     /* Paper Texture & Lines */
     background-image: 
@@ -99,7 +100,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 20;
+    z-index: 1; /* Lower than canvas to be behind particles */
     pointer-events: none;
     opacity: 0;
     transition: opacity 1.5s ease;
