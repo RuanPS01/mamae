@@ -17,8 +17,10 @@ body {
     margin: 0;
     overflow: hidden;
     height: 100vh;
+    height: 100dvh;
     width: 100vw;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    position: fixed; /* Prevent any bounce/scroll on mobile */
 }
 
 #canvas-container {
@@ -37,6 +39,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
+    height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -44,6 +47,7 @@ body {
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.8s ease;
+    padding: 20px; /* Safe area */
 }
 
 #ui-overlay.visible {
@@ -52,88 +56,35 @@ body {
 }
 
 #letter-window {
-    width: 90vw;
+    width: 100%;
     max-width: 450px;
+    max-height: 90dvh; /* Ensure it fits on screen */
     background-color: var(--letter-bg);
-    padding: 40px 20px 30px 45px;
+    padding: 30px 15px 25px 40px;
     box-shadow: 0 30px 60px rgba(0,0,0,0.5);
-    border-radius: 2px;
+    border-radius: 4px;
     position: relative;
-    transform: translateY(20px);
-    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    flex-direction: column;
+    transform: translateY(50px) scale(0.9);
+    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.8s;
     
     /* Paper Texture & Lines */
     background-image: 
-        linear-gradient(90deg, transparent 39px, var(--margin-color) 39px, var(--margin-color) 41px, transparent 41px),
+        linear-gradient(90deg, transparent 34px, var(--margin-color) 34px, var(--margin-color) 36px, transparent 36px),
         repeating-linear-gradient(var(--letter-bg), var(--letter-bg) 24px, var(--line-color) 24px, var(--line-color) 25px);
 }
 
 #ui-overlay.visible #letter-window {
-    transform: translateY(0);
-}
-
-#letter-window::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        to bottom,
-        rgba(0,0,0,0.03) 0%,
-        transparent 32%,
-        transparent 34%,
-        rgba(0,0,0,0.03) 35%,
-        transparent 65%,
-        transparent 67%,
-        rgba(0,0,0,0.03) 68%,
-        transparent 100%
-    );
-    pointer-events: none;
-}
-
-.letter-content {
-    font-family: 'Dancing Script', cursive;
-    color: #333;
-}
-
-.letter-content h2 {
-    color: var(--primary-red);
-    margin-bottom: 20px;
-    font-size: clamp(1.8rem, 6vw, 2.5rem);
+    transform: translateY(0) scale(1);
 }
 
 .scroll-area {
-    max-height: 50vh;
+    flex: 1;
     overflow-y: auto;
     padding-right: 10px;
-}
-
-.letter-content p {
-    font-size: clamp(1.2rem, 4.5vw, 1.6rem);
-    line-height: 25px;
-    margin-bottom: 25px;
-}
-
-#btn-amei {
-    display: block;
-    width: 100%;
-    padding: 15px;
-    background-color: var(--primary-red);
-    color: white;
-    border: none;
-    border-radius: 30px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 1.2rem;
-    margin-top: 20px;
-    box-shadow: 0 5px 15px rgba(204, 0, 0, 0.3);
-    transition: transform 0.2s;
-}
-
-#btn-amei:hover {
-    transform: scale(1.05);
+    margin-bottom: 15px;
+    min-height: 0; /* Important for flex child overflow */
 }
 
 /* Final Reveal */
@@ -143,13 +94,15 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
+    height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 20;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 2s ease;
+    transition: opacity 1.5s ease;
+    overflow: hidden;
 }
 
 #final-reveal.visible {
@@ -159,13 +112,28 @@ body {
 
 .photo-frame {
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 90%;
+    max-width: 500px;
+    transform: scale(0.8);
+    transition: transform 2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#final-reveal.visible .photo-frame {
+    transform: scale(1);
 }
 
 #final-photo {
-    width: 80vw;
-    max-width: 450px;
-    border: 12px solid white;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5; /* Maintain placeholder ratio */
+    object-fit: cover;
+    border: 10px solid white;
+    border-radius: 5px;
     box-shadow: 0 25px 70px rgba(0,0,0,0.8);
+    background-color: #eee; /* Placeholder bg */
 }
 
 #love-message {
