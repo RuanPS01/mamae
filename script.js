@@ -1,6 +1,6 @@
 /**
  * Three.js Tribute Site - Ultra Realistic Procedural 3D Envelope
- * Adjusted for TOON SHADING (Cartoon Style)
+ * TOON SHADING + STROKE LINES
  */
 
 let scene, camera, renderer, raycaster, mouse, clock;
@@ -24,7 +24,6 @@ function init() {
         renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.shadowMap.enabled = true;
         
         const container = document.getElementById('canvas-container');
         if (!container) return;
@@ -38,17 +37,12 @@ function init() {
     mouse = new THREE.Vector2();
     clock = new THREE.Clock();
 
-    // Toon Shading works best with strong, distinct lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
 
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
     sunLight.position.set(5, 5, 5);
     scene.add(sunLight);
-
-    const fillLight = new THREE.PointLight(0xffaaaa, 0.8);
-    fillLight.position.set(-5, 0, 2);
-    scene.add(fillLight);
 
     uiOverlay = document.getElementById('ui-overlay');
     btnAmei = document.getElementById('btn-amei');
@@ -79,47 +73,63 @@ function setupToonMaterials() {
     toonMatOutline = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide });
 }
 
-// Helper to add outline
-function addOutline(mesh, thickness = 0.05) {
-    const outline = mesh.clone();
-    outline.material = toonMatOutline;
-    outline.scale.multiplyScalar(1 + thickness);
-    mesh.add(outline);
+// Improved Outline using EdgesGeometry for crisp cartoon lines
+function addStrokeLines(mesh) {
+    const edges = new THREE.EdgesGeometry(mesh.geometry);
+    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 }));
+    mesh.add(line);
 }
 
 function createRealisticEnvelope() {
     envelopeGroup = new THREE.Group();
 
-    // 1. Back Plate
-    const backGeo = new THREE.BoxGeometry(3.6, 2.4, 0.05);
+    // 1. Back Plate (The Foundation)
+    const backGeo = new THREE.BoxGeometry(3.6, 2.4, 0.1);
     const back = new THREE.Mesh(backGeo, toonMatBase);
-    addOutline(back, 0.02);
+    addStrokeLines(back);
     envelopeGroup.add(back);
 
-    // 2. Pocket Parts
-    const createFold = (shapePoints, color, z) => {
+    // 2. Pocket Parts - Using distinct Z positions to kill Z-fighting
+    const createFold = (shapePoints, color, zOffset) => {
         const shape = new THREE.Shape();
         shape.moveTo(shapePoints[0].x, shapePoints[0].y);
         for(let i=1; i<shapePoints.length; i++) shape.lineTo(shapePoints[i].x, shapePoints[i].y);
         const geo = new THREE.ShapeGeometry(shape);
         const mesh = new THREE.Mesh(geo, new THREE.MeshToonMaterial({ color: color, side: THREE.DoubleSide }));
-        mesh.position.z = z;
-        addOutline(mesh, 0.01);
+        mesh.position.z = 0.05 + zOffset; // Offset from back plate
+        addStrokeLines(mesh);
         return mesh;
     };
 
-    envelopeGroup.add(createFold([{x: -1.8, y: -1.2}, {x: 0, y: 0}, {x: -1.8, y: 1.2}], 0xe8e2d2, 0.03));
-    envelopeGroup.add(createFold([{x: 1.8, y: -1.2}, {x: 0, y: 0}, {x: 1.8, y: 1.2}], 0xe8e2d2, 0.03));
-    envelopeGroup.add(createFold([{x: -1.8, y: -1.2}, {x: 1.8, y: -1.2}, {x: 0, y: 0.2}], 0xfcf9f2, 0.06));
+    // Left Flap
+    envelopeGroup.add(createFold([
+        {x: -1.8, y: -1.2}, {x: 0, y: 0}, {x: -1.8, y: 1.2}
+    ], 0xe8e2d2, 0.02));
 
-    // 3. Top Flap
+    // Right Flap
+    envelopeGroup.add(createFold([
+        {x: 1.8, y: -1.2}, {x: 0, y: 0}, {x: 1.8, y: 1.2}
+    ], 0xe8e2d2, 0.04));
+
+    // Bottom Flap (On top of sides)
+    const bottomFold = createFold([
+        {x: -1.8, y: -1.2}, {x: 1.8, y: -1.2}, {x: 0, y: 0.2}
+    ], 0xfcf9f2, 0.06);
+    envelopeGroup.add(bottomFold);
+
+    // 3. Top Flap with Hinged Pivot
     const flapShape = new THREE.Shape();
-    flapShape.moveTo(-1.8, 0); flapShape.lineTo(1.8, 0); flapShape.lineTo(0, -1.4); flapShape.lineTo(-1.8, 0);
+    flapShape.moveTo(-1.8, 0);
+    flapShape.lineTo(1.8, 0);
+    flapShape.lineTo(0, -1.4);
+    flapShape.lineTo(-1.8, 0);
+    
     envelopeFlap = new THREE.Mesh(new THREE.ShapeGeometry(flapShape), toonMatBase);
-    addOutline(envelopeFlap, 0.01);
+    addStrokeLines(envelopeFlap);
     
     const flapPivot = new THREE.Group();
-    flapPivot.position.y = 1.2; flapPivot.position.z = 0.07;
+    flapPivot.position.y = 1.2;
+    flapPivot.position.z = 0.12; // Far enough to not fight
     flapPivot.add(envelopeFlap);
     envelopeGroup.add(flapPivot);
     envelopeFlap.userData.pivot = flapPivot;
@@ -127,8 +137,8 @@ function createRealisticEnvelope() {
     // 4. Letter
     const letterGeo = new THREE.BoxGeometry(3.3, 2.1, 0.02);
     letterMesh = new THREE.Mesh(letterGeo, toonMatLetter);
-    addOutline(letterMesh, 0.02);
-    letterMesh.position.z = 0.04;
+    addStrokeLines(letterMesh);
+    letterMesh.position.z = 0.03; // Inside the pocket
     envelopeGroup.add(letterMesh);
 
     scene.add(envelopeGroup);
@@ -146,12 +156,15 @@ function openLetter() {
     }
     gsap.killTweensOf(envelopeGroup.position);
     gsap.killTweensOf(envelopeGroup.rotation);
+
     const tl = gsap.timeline();
     tl.to(envelopeFlap.userData.pivot.rotation, { x: Math.PI * 0.85, duration: 1, ease: "back.inOut(1.5)" });
     tl.to(letterMesh.position, { y: 2.8, z: 0.5, duration: 1.2, ease: "power2.out" }, "-=0.4");
+    
     tl.to(envelopeGroup.position, { y: -5, z: -2, duration: 1.5, ease: "power2.inOut" }, "-=0.8");
     tl.to(letterMesh.position, { y: 4, z: 3.5, duration: 1.5, ease: "power2.inOut" }, "-=1.5");
     tl.to(letterMesh.scale, { x: 1.7, y: 1.7, duration: 1.5, ease: "power2.inOut" }, "-=1.5");
+
     tl.call(() => {
         uiOverlay.classList.remove('hidden');
         setTimeout(() => uiOverlay.classList.add('visible'), 50);
@@ -162,7 +175,7 @@ function onAmeiClick() {
     uiOverlay.classList.remove('visible');
     const tl = gsap.timeline();
     tl.to(letterMesh.scale, { x: 1, y: 1, duration: 1, ease: "power2.in" });
-    tl.to(letterMesh.position, { y: 0, z: 0.04, duration: 1, ease: "power2.in" }, "-=1");
+    tl.to(letterMesh.position, { y: 0, z: 0.03, duration: 1, ease: "power2.in" }, "-=1");
     tl.to(envelopeGroup.position, { y: 0, z: 0, duration: 1, ease: "power2.in" }, "-=1");
     tl.to(envelopeFlap.userData.pivot.rotation, { x: 0, duration: 0.7, ease: "power2.inOut" });
     tl.to(envelopeGroup.scale, { x: 0, y: 0, z: 0, duration: 0.8, ease: "back.in(1.2)" });
@@ -178,7 +191,7 @@ function onAmeiClick() {
 function animate() {
     requestAnimationFrame(animate);
     const delta = clock.getDelta();
-    const timeFactor = Math.min(delta * 60, 2); // Cap timeFactor to avoid huge jumps
+    const timeFactor = Math.min(delta * 60, 2);
 
     heartsBackground.forEach(h => { 
         h.position.y += h.userData.speed * timeFactor; 
@@ -231,8 +244,10 @@ function onDocumentMouseDown(e) {
 
 function createBurst() {
     const colors = [0xff4d4d, 0xff9999, 0xff1a1a, 0xe60000];
-    const s = new THREE.Shape(); s.moveTo(0,0); s.bezierCurveTo(0,0.5,0.5,1,1,1); s.bezierCurveTo(2,1,2,0,1,-1); s.lineTo(0,-2); s.lineTo(-1,-1); s.bezierCurveTo(-2,0,-2,1,-1,1); s.bezierCurveTo(-0.5,1,0,0.5,0,0);
+    const s = new THREE.Shape(); 
+    s.moveTo(0,0); s.bezierCurveTo(0,0.5,0.5,1,1,1); s.bezierCurveTo(2,1,2,0,1,-1); s.lineTo(0,-2); s.lineTo(-1,-1); s.bezierCurveTo(-2,0,-2,1,-1,1); s.bezierCurveTo(-0.5,1,0,0.5,0,0);
     const hG = new THREE.ShapeGeometry(s); const bG = new THREE.SphereGeometry(0.3, 16, 16);
+    
     for(let i=0; i<120; i++){
         const isHeart = Math.random() > 0.4;
         const p = new THREE.Mesh(isHeart ? hG : bG, new THREE.MeshToonMaterial({color: colors[Math.floor(Math.random()*colors.length)], transparent: true, opacity: 1}));
