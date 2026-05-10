@@ -143,9 +143,14 @@ function createRealisticEnvelope() {
 function openLetter() {
     isLetterOpen = true;
 
-    // Hide hint text
+    // Hide and remove hint text
     const hint = document.getElementById('hint-text');
-    if (hint) hint.style.opacity = '0';
+    if (hint) {
+        hint.style.opacity = '0';
+        setTimeout(() => {
+            hint.style.display = 'none';
+        }, 500); // Wait for CSS transition
+    }
 
     gsap.killTweensOf(envelopeGroup.position);
     gsap.killTweensOf(envelopeGroup.rotation);
