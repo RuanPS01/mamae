@@ -1,5 +1,6 @@
 /**
  * Three.js Tribute Site - Ultra Realistic Procedural 3D Envelope
+ * Adjusted for TOON SHADING (Cartoon Style)
  */
 
 let scene, camera, renderer, raycaster, mouse, clock;
@@ -9,6 +10,9 @@ let particles = [];
 let isLetterOpen = false;
 
 let uiOverlay, btnAmei, finalReveal;
+
+// Toon Materials
+let toonMatBase, toonMatShade, toonMatLetter, toonMatOutline;
 
 function init() {
     scene = new THREE.Scene();
@@ -32,18 +36,17 @@ function init() {
 
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2();
-    clock = new THREE.Clock(); // Initialize Clock for Delta Time
+    clock = new THREE.Clock();
 
-    // High-end Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    // Toon Shading works best with strong, distinct lights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
     scene.add(ambientLight);
 
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    const sunLight = new THREE.DirectionalLight(0xffffff, 1.8);
     sunLight.position.set(5, 5, 5);
-    sunLight.castShadow = true;
     scene.add(sunLight);
 
-    const fillLight = new THREE.PointLight(0xff8888, 1);
+    const fillLight = new THREE.PointLight(0xffaaaa, 0.8);
     fillLight.position.set(-5, 0, 2);
     scene.add(fillLight);
 
@@ -53,6 +56,7 @@ function init() {
 
     if (btnAmei) btnAmei.addEventListener('click', onAmeiClick);
 
+    setupToonMaterials();
     createBackgroundHearts();
     createRealisticEnvelope();
     
@@ -65,41 +69,65 @@ function init() {
     animate();
 }
 
-function createRealisticEnvelope() {
-    envelopeGroup = new THREE.Group();
+function setupToonMaterials() {
     const paperColor = 0xfcf9f2;
     const shadowColor = 0xe8e2d2;
-    const matBase = new THREE.MeshPhongMaterial({ color: paperColor, shininess: 5, side: THREE.DoubleSide });
 
+    toonMatBase = new THREE.MeshToonMaterial({ color: paperColor, side: THREE.DoubleSide });
+    toonMatShade = new THREE.MeshToonMaterial({ color: shadowColor, side: THREE.DoubleSide });
+    toonMatLetter = new THREE.MeshToonMaterial({ color: 0xffffff });
+    toonMatOutline = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide });
+}
+
+// Helper to add outline
+function addOutline(mesh, thickness = 0.05) {
+    const outline = mesh.clone();
+    outline.material = toonMatOutline;
+    outline.scale.multiplyScalar(1 + thickness);
+    mesh.add(outline);
+}
+
+function createRealisticEnvelope() {
+    envelopeGroup = new THREE.Group();
+
+    // 1. Back Plate
     const backGeo = new THREE.BoxGeometry(3.6, 2.4, 0.05);
-    const back = new THREE.Mesh(backGeo, matBase);
+    const back = new THREE.Mesh(backGeo, toonMatBase);
+    addOutline(back, 0.02);
     envelopeGroup.add(back);
 
+    // 2. Pocket Parts
     const createFold = (shapePoints, color, z) => {
         const shape = new THREE.Shape();
         shape.moveTo(shapePoints[0].x, shapePoints[0].y);
         for(let i=1; i<shapePoints.length; i++) shape.lineTo(shapePoints[i].x, shapePoints[i].y);
         const geo = new THREE.ShapeGeometry(shape);
-        const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ color: color, side: THREE.DoubleSide }));
+        const mesh = new THREE.Mesh(geo, new THREE.MeshToonMaterial({ color: color, side: THREE.DoubleSide }));
         mesh.position.z = z;
+        addOutline(mesh, 0.01);
         return mesh;
     };
 
-    envelopeGroup.add(createFold([{x: -1.8, y: -1.2}, {x: 0, y: 0}, {x: -1.8, y: 1.2}], shadowColor, 0.03));
-    envelopeGroup.add(createFold([{x: 1.8, y: -1.2}, {x: 0, y: 0}, {x: 1.8, y: 1.2}], shadowColor, 0.03));
-    envelopeGroup.add(createFold([{x: -1.8, y: -1.2}, {x: 1.8, y: -1.2}, {x: 0, y: 0.2}], paperColor, 0.06));
+    envelopeGroup.add(createFold([{x: -1.8, y: -1.2}, {x: 0, y: 0}, {x: -1.8, y: 1.2}], 0xe8e2d2, 0.03));
+    envelopeGroup.add(createFold([{x: 1.8, y: -1.2}, {x: 0, y: 0}, {x: 1.8, y: 1.2}], 0xe8e2d2, 0.03));
+    envelopeGroup.add(createFold([{x: -1.8, y: -1.2}, {x: 1.8, y: -1.2}, {x: 0, y: 0.2}], 0xfcf9f2, 0.06));
 
+    // 3. Top Flap
     const flapShape = new THREE.Shape();
     flapShape.moveTo(-1.8, 0); flapShape.lineTo(1.8, 0); flapShape.lineTo(0, -1.4); flapShape.lineTo(-1.8, 0);
-    envelopeFlap = new THREE.Mesh(new THREE.ShapeGeometry(flapShape), matBase);
+    envelopeFlap = new THREE.Mesh(new THREE.ShapeGeometry(flapShape), toonMatBase);
+    addOutline(envelopeFlap, 0.01);
+    
     const flapPivot = new THREE.Group();
     flapPivot.position.y = 1.2; flapPivot.position.z = 0.07;
     flapPivot.add(envelopeFlap);
     envelopeGroup.add(flapPivot);
     envelopeFlap.userData.pivot = flapPivot;
 
+    // 4. Letter
     const letterGeo = new THREE.BoxGeometry(3.3, 2.1, 0.02);
-    letterMesh = new THREE.Mesh(letterGeo, new THREE.MeshPhongMaterial({ color: 0xffffff, emissive: 0x111111 }));
+    letterMesh = new THREE.Mesh(letterGeo, toonMatLetter);
+    addOutline(letterMesh, 0.02);
     letterMesh.position.z = 0.04;
     envelopeGroup.add(letterMesh);
 
@@ -150,8 +178,7 @@ function onAmeiClick() {
 function animate() {
     requestAnimationFrame(animate);
     const delta = clock.getDelta();
-    // Normalize speed: factor is approx 60fps
-    const timeFactor = delta * 60;
+    const timeFactor = Math.min(delta * 60, 2); // Cap timeFactor to avoid huge jumps
 
     heartsBackground.forEach(h => { 
         h.position.y += h.userData.speed * timeFactor; 
@@ -184,7 +211,7 @@ function createBackgroundHearts() {
     s.moveTo(0,0); s.bezierCurveTo(0,0.5,0.5,1,1,1); s.bezierCurveTo(2,1,2,0,1,-1); s.lineTo(0,-2); s.lineTo(-1,-1); s.bezierCurveTo(-2,0,-2,1,-1,1); s.bezierCurveTo(-0.5,1,0,0.5,0,0);
     const geo = new THREE.ShapeGeometry(s);
     for(let i=0; i<40; i++){
-        const h = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({color: 0xff4d4d, transparent: true, opacity: 0.3}));
+        const h = new THREE.Mesh(geo, new THREE.MeshToonMaterial({color: 0xff4d4d, transparent: true, opacity: 0.3}));
         resetHeart(h); scene.add(h); heartsBackground.push(h);
     }
 }
@@ -208,7 +235,7 @@ function createBurst() {
     const hG = new THREE.ShapeGeometry(s); const bG = new THREE.SphereGeometry(0.3, 16, 16);
     for(let i=0; i<120; i++){
         const isHeart = Math.random() > 0.4;
-        const p = new THREE.Mesh(isHeart ? hG : bG, new THREE.MeshPhongMaterial({color: colors[Math.floor(Math.random()*colors.length)], transparent: true, opacity: 1}));
+        const p = new THREE.Mesh(isHeart ? hG : bG, new THREE.MeshToonMaterial({color: colors[Math.floor(Math.random()*colors.length)], transparent: true, opacity: 1}));
         p.position.set((Math.random()-0.5)*2, -5, (Math.random()-0.5)*3);
         p.scale.setScalar(Math.random()*0.3 + 0.1);
         p.userData.velocity = new THREE.Vector3((Math.random()-0.5)*0.03, Math.random()*0.03+0.015, (Math.random()-0.5)*0.03);
