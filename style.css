@@ -194,3 +194,26 @@ body {
 }
 
 .hidden { display: none !important; }
+
+#hint-text {
+    position: fixed;
+    bottom: 15vh;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 300;
+    text-shadow: 0 0 10px rgba(0,0,0,0.5);
+    z-index: 5;
+    pointer-events: none;
+    animation: pulse 2s infinite ease-in-out;
+    font-family: 'Dancing Script', cursive;
+    text-align: center;
+    width: 100%;
+    transition: opacity 0.5s ease;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.5; transform: translateX(-50%) scale(1); }
+    50% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+}
