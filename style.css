@@ -3,9 +3,11 @@
     --envelope-color: #f5f5dc;
     --envelope-pocket: #e6e6c8;
     --envelope-flap: #d9d9b1;
-    --letter-bg: #fff;
+    --letter-bg: #fdfbf7;
     --heart-color: rgba(255, 0, 0, 0.4);
     --primary-red: #cc0000;
+    --line-color: rgba(0, 100, 255, 0.15);
+    --margin-color: rgba(255, 0, 0, 0.2);
 }
 
 * {
@@ -45,8 +47,7 @@ body {
     background-color: var(--heart-color);
 }
 
-.heart-shape::before,
-.heart-shape::after {
+.heart-shape::before, .heart-shape::after {
     content: "";
     background-color: inherit;
     border-radius: 50%;
@@ -55,15 +56,8 @@ body {
     width: 100%;
 }
 
-.heart-shape::before {
-    top: -50%;
-    left: 0;
-}
-
-.heart-shape::after {
-    left: 50%;
-    top: 0;
-}
+.heart-shape::before { top: -50%; left: 0; }
+.heart-shape::after { left: 50%; top: 0; }
 
 .bg-heart {
     position: absolute;
@@ -72,17 +66,9 @@ body {
 }
 
 @keyframes rise {
-    0% {
-        transform: translateY(0) scale(1);
-        opacity: 0;
-    }
-    10% {
-        opacity: 0.8;
-    }
-    100% {
-        transform: translateY(-110vh) scale(1);
-        opacity: 0;
-    }
+    0% { transform: translateY(0) scale(1); opacity: 0; }
+    10% { opacity: 0.8; }
+    100% { transform: translateY(-110vh) scale(1); opacity: 0; }
 }
 
 /* Main Container */
@@ -94,34 +80,48 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    perspective: 2000px;
 }
 
-/* Envelope Styling */
+/* Envelope Styling - Responsive & 3D */
 #envelope-wrapper {
-    perspective: 1000px;
-    transition: opacity 1s ease, transform 1s ease;
+    width: 90vw;
+    max-width: 350px;
+    height: 230px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 1s ease;
 }
 
 .envelope {
     position: relative;
-    width: 280px;
-    height: 180px;
+    width: 100%;
+    height: 100%;
     background-color: var(--envelope-color);
     cursor: pointer;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    animation: float 3s ease-in-out infinite;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    animation: float3D 4s ease-in-out infinite;
     transform-style: preserve-3d;
-    transition: transform 0.8s ease;
+    transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .envelope.open {
     animation: none;
-    transform: translateY(150px);
+    transform: translateY(20vh) rotateX(-20deg);
 }
 
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-20px); }
+@keyframes float3D {
+    0%, 100% { transform: translateY(0) rotateY(0deg) rotateX(5deg); }
+    50% { transform: translateY(-30px) rotateY(10deg) rotateX(-5deg); }
+}
+
+.back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: var(--envelope-color);
+    z-index: 1;
 }
 
 .pocket {
@@ -131,9 +131,20 @@ body {
     width: 0;
     height: 0;
     border-style: solid;
-    border-width: 90px 140px 90px 140px;
+    border-width: 115px 45vw 115px 45vw; /* Responsive border */
+}
+
+/* Max-width adjustments for border-width */
+@media (min-width: 388px) {
+    .pocket {
+        border-width: 115px 175px 115px 175px;
+    }
+}
+
+.pocket {
     border-color: transparent var(--envelope-pocket) var(--envelope-pocket) var(--envelope-pocket);
     z-index: 3;
+    filter: drop-shadow(0 -5px 10px rgba(0,0,0,0.1));
 }
 
 .flap {
@@ -143,7 +154,16 @@ body {
     width: 0;
     height: 0;
     border-style: solid;
-    border-width: 100px 140px 0 140px;
+    border-width: 120px 45vw 0 45vw;
+}
+
+@media (min-width: 388px) {
+    .flap {
+        border-width: 120px 175px 0 175px;
+    }
+}
+
+.flap {
     border-color: var(--envelope-flap) transparent transparent transparent;
     z-index: 4;
     transform-origin: top;
@@ -155,34 +175,72 @@ body {
     z-index: 1;
 }
 
-/* Letter Styling */
+/* Letter Styling - REALISTIC PAPER */
 .letter {
     position: absolute;
     bottom: 5px;
-    left: 10px;
-    width: 260px;
-    height: 160px;
+    left: 5%;
+    width: 90%;
+    height: 90%;
     background-color: var(--letter-bg);
     z-index: 2;
-    transition: all 1s ease-in-out;
-    padding: 20px;
+    transition: all 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    padding: 30px 20px 20px 40px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    
+    /* Paper Texture & Lines */
+    background-image: 
+        linear-gradient(90deg, transparent 39px, var(--margin-color) 39px, var(--margin-color) 41px, transparent 41px),
+        repeating-linear-gradient(var(--letter-bg), var(--letter-bg) 24px, var(--line-color) 24px, var(--line-color) 25px);
+    
+    /* Fold Marks simulation */
     overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.letter::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.03) 0%,
+        transparent 32%,
+        transparent 34%,
+        rgba(0,0,0,0.03) 35%,
+        transparent 65%,
+        transparent 67%,
+        rgba(0,0,0,0.03) 68%,
+        transparent 100%
+    );
+    pointer-events: none;
 }
 
 .envelope.open .letter {
-    transform: translateY(-350px) scale(1.5);
-    height: auto;
-    max-height: 400px;
-    width: 350px;
-    left: -35px;
+    transform: translateY(-50vh) translateZ(150px) scale(1.1);
+    height: 70vh;
+    max-height: 500px;
+    width: 85vw;
+    max-width: 400px;
+    left: 50%;
+    margin-left: -42.5vw; /* Centering fix for width 85vw */
     z-index: 100;
     overflow-y: auto;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.05);
+}
+
+@media (min-width: 470px) {
+    .envelope.open .letter {
+        margin-left: -200px;
+    }
 }
 
 .letter-content {
     opacity: 0;
     transition: opacity 0.5s ease 0.8s;
+    font-family: 'Dancing Script', cursive;
 }
 
 .envelope.open .letter-content {
@@ -191,33 +249,36 @@ body {
 
 .letter-content h2 {
     color: var(--primary-red);
-    margin-bottom: 15px;
-    font-size: 1.2rem;
+    margin-bottom: 20px;
+    font-size: clamp(1.5rem, 5vw, 2.2rem);
 }
 
 .letter-content p {
-    font-size: 0.9rem;
-    line-height: 1.4;
-    margin-bottom: 10px;
+    font-size: clamp(1.1rem, 4vw, 1.4rem);
+    line-height: 25px; /* Matches pautado lines */
+    margin-bottom: 25px;
     color: #444;
 }
 
 #btn-amei {
     display: block;
     width: 100%;
-    padding: 10px;
+    padding: 15px;
     background-color: var(--primary-red);
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 30px;
     cursor: pointer;
     font-weight: bold;
-    margin-top: 15px;
-    transition: background 0.3s;
+    font-size: 1.1rem;
+    margin-top: 30px;
+    box-shadow: 0 5px 15px rgba(204, 0, 0, 0.3);
+    transition: transform 0.2s, background 0.3s;
 }
 
 #btn-amei:hover {
     background-color: #a00000;
+    transform: translateY(-2px);
 }
 
 /* Final Reveal */
@@ -244,30 +305,32 @@ body {
 
 .photo-frame {
     text-align: center;
-    transform: scale(0.5);
-    filter: blur(10px);
-    transition: all 2s ease 1s;
+    transform: scale(0.5) translateZ(-500px);
+    filter: blur(20px);
+    transition: all 2.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.5s;
 }
 
 #final-reveal.visible .photo-frame {
-    transform: scale(1);
+    transform: scale(1) translateZ(0);
     filter: blur(0);
 }
 
 #final-photo {
-    max-width: 80%;
+    width: 85vw;
+    max-width: 400px;
     max-height: 60vh;
+    object-fit: cover;
     border: 10px solid white;
     border-radius: 10px;
-    box-shadow: 0 15px 50px rgba(0,0,0,0.6);
+    box-shadow: 0 25px 70px rgba(0,0,0,0.7);
 }
 
 #love-message {
     color: white;
-    font-size: 3rem;
-    margin-top: 20px;
-    text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
-    font-family: 'Brush Script MT', cursive, sans-serif;
+    font-size: clamp(2rem, 8vw, 4rem);
+    margin-top: 25px;
+    text-shadow: 2px 2px 20px rgba(0,0,0,0.8);
+    font-family: 'Dancing Script', cursive;
 }
 
 /* Balloons & Hearts Burst */
@@ -294,8 +357,8 @@ body {
 }
 
 @keyframes burst {
-    0% { transform: translateY(0) scale(1); opacity: 1; }
-    100% { transform: translateY(-120vh) translateX(var(--drift)) scale(1.5); opacity: 0; }
+    0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(-120vh) translateX(var(--drift)) scale(1.8) rotate(var(--rot)); opacity: 0; }
 }
 
 .hidden { display: none !important; }

@@ -89,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 particle.style.left = `${Math.random() * 100}%`;
                 particle.style.setProperty('--drift', `${(Math.random() - 0.5) * 600}px`);
+                particle.style.setProperty('--rot', `${(Math.random() - 0.5) * 720}deg`);
                 
                 finalReveal.appendChild(particle);
                 
