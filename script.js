@@ -189,10 +189,28 @@ function onAmeiClick() {
 
 function animate() {
     requestAnimationFrame(animate);
-    heartsBackground.forEach(h => { h.position.y += h.userData.speed; h.rotation.z += 0.01; if(h.position.y > 10) resetHeart(h); });
+    
+    // Background hearts animation
+    heartsBackground.forEach(h => { 
+        h.position.y += h.userData.speed; 
+        h.rotation.z += 0.005; // Slower rotation
+        if(h.position.y > 10) resetHeart(h); 
+    });
+    
+    // Particles animation (Burst)
     for(let i=particles.length-1; i>=0; i--){
-        const p = particles[i]; p.position.add(p.userData.velocity); p.rotation.x+=0.02; p.material.opacity-=0.005;
-        if(p.material.opacity<=0){ scene.remove(p); particles.splice(i,1); }
+        const p = particles[i]; 
+        p.position.add(p.userData.velocity); 
+        p.rotation.x += p.userData.rotationSpeed;
+        p.rotation.y += p.userData.rotationSpeed;
+        
+        // Slower opacity fade for longer visibility
+        p.material.opacity -= 0.002;
+        
+        if(p.material.opacity <= 0){ 
+            scene.remove(p); 
+            particles.splice(i,1); 
+        }
     }
     renderer.render(scene, camera);
 }
@@ -200,7 +218,7 @@ function animate() {
 function resetHeart(h) {
     h.position.set((Math.random()-0.5)*20, -10, (Math.random()-0.5)*15);
     h.scale.setScalar(Math.random()*0.2+0.1);
-    h.userData.speed = Math.random()*0.02+0.02;
+    h.userData.speed = Math.random()*0.02+0.01; // Slower background hearts
     h.material.opacity = Math.random()*0.4+0.1;
 }
 
@@ -229,14 +247,31 @@ function onDocumentMouseDown(e) {
 
 function createBurst() {
     const colors = [0xff4d4d, 0xff9999, 0xff1a1a, 0xe60000];
-    const s = new THREE.Shape(); s.moveTo(0,0); s.bezierCurveTo(0,0.5,0.5,1,1,1); s.bezierCurveTo(2,1,2,0,1,-1); s.lineTo(0,-2); s.lineTo(-1,-1); s.bezierCurveTo(-2,0,-2,1,-1,1); s.bezierCurveTo(-0.5,1,0,0.5,0,0);
+    const s = new THREE.Shape(); 
+    s.moveTo(0,0); s.bezierCurveTo(0,0.5,0.5,1,1,1); s.bezierCurveTo(2,1,2,0,1,-1); s.lineTo(0,-2); s.lineTo(-1,-1); s.bezierCurveTo(-2,0,-2,1,-1,1); s.bezierCurveTo(-0.5,1,0,0.5,0,0);
     const hG = new THREE.ShapeGeometry(s); const bG = new THREE.SphereGeometry(0.3, 16, 16);
-    for(let i=0; i<100; i++){
-        const p = new THREE.Mesh(Math.random()>0.4?hG:bG, new THREE.MeshPhongMaterial({color: colors[Math.floor(Math.random()*colors.length)], transparent: true}));
-        p.position.set((Math.random()-0.5)*4, -6, (Math.random()-0.5)*6);
-        p.scale.setScalar(Math.random()*0.4+0.2);
-        p.userData.velocity = new THREE.Vector3((Math.random()-0.5)*0.1, Math.random()*0.15+0.1, (Math.random()-0.5)*0.1);
-        scene.add(p); particles.push(p);
+    
+    for(let i=0; i<120; i++){ // More particles
+        const isHeart = Math.random() > 0.4;
+        const p = new THREE.Mesh(isHeart ? hG : bG, new THREE.MeshPhongMaterial({
+            color: colors[Math.floor(Math.random()*colors.length)], 
+            transparent: true,
+            opacity: 1
+        }));
+        
+        p.position.set((Math.random()-0.5)*2, -5, (Math.random()-0.5)*3);
+        p.scale.setScalar(Math.random()*0.3 + 0.1);
+        
+        // Much slower velocities for a graceful rise
+        p.userData.velocity = new THREE.Vector3(
+            (Math.random()-0.5) * 0.03, 
+            Math.random() * 0.03 + 0.015, 
+            (Math.random()-0.5) * 0.03
+        );
+        p.userData.rotationSpeed = (Math.random()-0.5) * 0.015;
+        
+        scene.add(p); 
+        particles.push(p);
     }
 }
 
