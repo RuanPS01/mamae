@@ -1,23 +1,18 @@
 /**
- * Three.js Tribute Site - 3D Refactor (Enhanced Visuals)
+ * Three.js Tribute Site - Ultra Realistic Procedural 3D Envelope
  */
 
-// Scene Variables
 let scene, camera, renderer, raycaster, mouse;
 let envelopeGroup, envelopeFlap, letterMesh;
 let heartsBackground = [];
 let particles = [];
 let isLetterOpen = false;
 
-// UI Elements
 let uiOverlay, btnAmei, finalReveal;
 
-// Initialize
 function init() {
-    console.log("Initializing Three.js scene...");
-    
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x4a0404);
+    scene.background = new THREE.Color(0x3d0202); // Deeper red for contrast
     
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.z = 5;
@@ -26,30 +21,31 @@ function init() {
         renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true; // Enable shadows
         
         const container = document.getElementById('canvas-container');
         if (!container) return;
         container.innerHTML = '';
         container.appendChild(renderer.domElement);
     } catch (e) {
-        console.error(e);
         return;
     }
 
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2();
 
-    // 2. Enhanced Lights - More brightness and directionality
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+    // High-end Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
 
-    const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
-    mainLight.position.set(2, 4, 5);
-    scene.add(mainLight);
+    const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    sunLight.position.set(5, 5, 5);
+    sunLight.castShadow = true;
+    scene.add(sunLight);
 
-    const rimLight = new THREE.PointLight(0xffffff, 0.5);
-    rimLight.position.set(-5, -5, -2);
-    scene.add(rimLight);
+    const fillLight = new THREE.PointLight(0xff8888, 1);
+    fillLight.position.set(-5, 0, 2);
+    scene.add(fillLight);
 
     uiOverlay = document.getElementById('ui-overlay');
     btnAmei = document.getElementById('btn-amei');
@@ -58,7 +54,7 @@ function init() {
     if (btnAmei) btnAmei.addEventListener('click', onAmeiClick);
 
     createBackgroundHearts();
-    createEnvelope();
+    createRealisticEnvelope();
     
     window.addEventListener('resize', onWindowResize);
     window.addEventListener('mousedown', onDocumentMouseDown);
@@ -69,196 +65,168 @@ function init() {
     animate();
 }
 
-function createBackgroundHearts() {
-    const heartShape = new THREE.Shape();
-    heartShape.moveTo(0, 0);
-    heartShape.bezierCurveTo(0, 0.5, 0.5, 1, 1, 1);
-    heartShape.bezierCurveTo(2, 1, 2, 0, 1, -1);
-    heartShape.lineTo(0, -2);
-    heartShape.lineTo(-1, -1);
-    heartShape.bezierCurveTo(-2, 0, -2, 1, -1, 1);
-    heartShape.bezierCurveTo(-0.5, 1, 0, 0.5, 0, 0);
-
-    const geometry = new THREE.ShapeGeometry(heartShape);
-    const material = new THREE.MeshPhongMaterial({ 
-        color: 0xff4d4d, 
-        transparent: true, 
-        opacity: 0.3,
-        side: THREE.DoubleSide 
-    });
-
-    for (let i = 0; i < 30; i++) {
-        const heart = new THREE.Mesh(geometry, material.clone());
-        resetHeart(heart);
-        scene.add(heart);
-        heartsBackground.push(heart);
-    }
-}
-
-function resetHeart(heart) {
-    heart.position.set((Math.random() - 0.5) * 20, -10 - Math.random() * 10, (Math.random() - 0.5) * 15);
-    heart.scale.setScalar(Math.random() * 0.2 + 0.1);
-    heart.userData.speed = Math.random() * 0.02 + 0.01;
-    heart.material.opacity = Math.random() * 0.3 + 0.1;
-}
-
-function createEnvelope() {
+function createRealisticEnvelope() {
     envelopeGroup = new THREE.Group();
 
-    // High quality materials with better specularity
-    const envelopeMat = new THREE.MeshPhongMaterial({ color: 0xfdf5e6, side: THREE.DoubleSide, shininess: 30 });
-    const pocketMat = new THREE.MeshPhongMaterial({ color: 0xeee8aa, side: THREE.DoubleSide, shininess: 10 });
-    const flapMat = new THREE.MeshPhongMaterial({ color: 0xf0e68c, side: THREE.DoubleSide, shininess: 40 });
+    // High-quality paper materials
+    const paperColor = 0xfcf9f2;
+    const shadowColor = 0xe8e2d2;
+    
+    const matBase = new THREE.MeshPhongMaterial({ color: paperColor, shininess: 5, side: THREE.DoubleSide });
+    const matShade = new THREE.MeshPhongMaterial({ color: shadowColor, shininess: 2, side: THREE.DoubleSide });
 
-    // 1. Back of envelope (the main body)
-    const backGeo = new THREE.PlaneGeometry(3.6, 2.4);
-    const backMesh = new THREE.Mesh(backGeo, envelopeMat);
-    envelopeGroup.add(backMesh);
+    // 1. Back Plate (with slight thickness)
+    const backGeo = new THREE.BoxGeometry(3.6, 2.4, 0.05);
+    const back = new THREE.Mesh(backGeo, matBase);
+    envelopeGroup.add(back);
 
-    // 2. Detailed Pocket (V-shape triangles to look like a real envelope)
-    // Left Triangle
-    const leftTriShape = new THREE.Shape();
-    leftTriShape.moveTo(-1.8, -1.2);
-    leftTriShape.lineTo(0, 0);
-    leftTriShape.lineTo(-1.8, 1.2);
-    leftTriShape.lineTo(-1.8, -1.2);
-    const leftPocket = new THREE.Mesh(new THREE.ShapeGeometry(leftTriShape), pocketMat);
-    leftPocket.position.z = 0.1;
-    envelopeGroup.add(leftPocket);
+    // 2. Pocket Parts (V-fold style)
+    const createFold = (shapePoints, color, z) => {
+        const shape = new THREE.Shape();
+        shape.moveTo(shapePoints[0].x, shapePoints[0].y);
+        for(let i=1; i<shapePoints.length; i++) shape.lineTo(shapePoints[i].x, shapePoints[i].y);
+        const geo = new THREE.ShapeGeometry(shape);
+        const mesh = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({ color: color, side: THREE.DoubleSide }));
+        mesh.position.z = z;
+        return mesh;
+    };
 
-    // Right Triangle
-    const rightTriShape = new THREE.Shape();
-    rightTriShape.moveTo(1.8, -1.2);
-    rightTriShape.lineTo(0, 0);
-    rightTriShape.lineTo(1.8, 1.2);
-    rightTriShape.lineTo(1.8, -1.2);
-    const rightPocket = new THREE.Mesh(new THREE.ShapeGeometry(rightTriShape), pocketMat);
-    rightPocket.position.z = 0.11;
-    envelopeGroup.add(rightPocket);
+    // Left Flap (Inner)
+    envelopeGroup.add(createFold([
+        {x: -1.8, y: -1.2}, {x: 0, y: 0}, {x: -1.8, y: 1.2}
+    ], shadowColor, 0.03));
 
-    // Bottom Triangle
-    const bottomTriShape = new THREE.Shape();
-    bottomTriShape.moveTo(-1.8, -1.2);
-    bottomTriShape.lineTo(1.8, -1.2);
-    bottomTriShape.lineTo(0, 0.2);
-    bottomTriShape.lineTo(-1.8, -1.2);
-    const bottomPocket = new THREE.Mesh(new THREE.ShapeGeometry(bottomTriShape), pocketMat);
-    bottomPocket.position.z = 0.12;
-    envelopeGroup.add(bottomPocket);
+    // Right Flap (Inner)
+    envelopeGroup.add(createFold([
+        {x: 1.8, y: -1.2}, {x: 0, y: 0}, {x: 1.8, y: 1.2}
+    ], shadowColor, 0.03));
 
-    // 3. Top Flap (Triangle)
-    const flapTriShape = new THREE.Shape();
-    flapTriShape.moveTo(-1.8, 0);
-    flapTriShape.lineTo(1.8, 0);
-    flapTriShape.lineTo(0, -1.3);
-    flapTriShape.lineTo(-1.8, 0);
-    envelopeFlap = new THREE.Mesh(new THREE.ShapeGeometry(flapTriShape), flapMat);
-    envelopeFlap.position.y = 1.2;
-    envelopeFlap.position.z = 0.13;
-    envelopeGroup.add(envelopeFlap);
+    // Bottom Flap (Overlapping)
+    const bottomFold = createFold([
+        {x: -1.8, y: -1.2}, {x: 1.8, y: -1.2}, {x: 0, y: 0.2}
+    ], paperColor, 0.06);
+    envelopeGroup.add(bottomFold);
 
-    // 4. Letter (White paper with slight emissive to not look gray)
-    const letterGeo = new THREE.PlaneGeometry(3.3, 2.2);
-    const letterMat = new THREE.MeshPhongMaterial({ color: 0xffffff, emissive: 0x222222 });
+    // 3. Top Flap with Hinged Pivot
+    const flapShape = new THREE.Shape();
+    flapShape.moveTo(-1.8, 0);
+    flapShape.lineTo(1.8, 0);
+    flapShape.lineTo(0, -1.4); // Deep V
+    flapShape.lineTo(-1.8, 0);
+    
+    const flapGeo = new THREE.ShapeGeometry(flapShape);
+    envelopeFlap = new THREE.Mesh(flapGeo, matBase);
+    
+    const flapPivot = new THREE.Group();
+    flapPivot.position.y = 1.2;
+    flapPivot.position.z = 0.07;
+    flapPivot.add(envelopeFlap);
+    envelopeGroup.add(flapPivot);
+    
+    // Store pivot for animation
+    envelopeFlap.userData.pivot = flapPivot;
+
+    // 4. Letter (with slight thickness)
+    const letterGeo = new THREE.BoxGeometry(3.3, 2.1, 0.02);
+    const letterMat = new THREE.MeshPhongMaterial({ color: 0xffffff, emissive: 0x111111 });
     letterMesh = new THREE.Mesh(letterGeo, letterMat);
-    letterMesh.position.z = 0.05;
+    letterMesh.position.z = 0.04;
     envelopeGroup.add(letterMesh);
 
     scene.add(envelopeGroup);
-    
-    // Floating animations
-    gsap.to(envelopeGroup.position, { y: 0.3, duration: 2.5, repeat: -1, yoyo: true, ease: "sine.inOut" });
-    gsap.to(envelopeGroup.rotation, { x: 0.1, y: 0.15, duration: 4, repeat: -1, yoyo: true, ease: "sine.inOut" });
-}
 
-function animate() {
-    requestAnimationFrame(animate);
-    heartsBackground.forEach(heart => {
-        heart.position.y += heart.userData.speed;
-        heart.rotation.y += 0.01;
-        if (heart.position.y > 12) resetHeart(heart);
-    });
-    for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.position.add(p.userData.velocity);
-        p.rotation.x += 0.02; p.rotation.y += 0.02;
-        p.material.opacity -= 0.005;
-        if (p.material.opacity <= 0) { scene.remove(p); particles.splice(i, 1); }
-    }
-    renderer.render(scene, camera);
-}
-
-function onWindowResize() {
-    if (!camera || !renderer) return;
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-}
-
-function onDocumentMouseDown(event) {
-    if (isLetterOpen || !envelopeGroup) return;
-    const clientX = event.clientX || (event.touches && event.touches[0].clientX);
-    const clientY = event.clientY || (event.touches && event.touches[0].clientY);
-    if (clientX === undefined) return;
-    mouse.x = (clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(clientY / window.innerHeight) * 2 + 1;
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(envelopeGroup.children, true);
-    if (intersects.length > 0) openLetter();
+    // Smooth idle animation
+    gsap.to(envelopeGroup.position, { y: 0.2, duration: 3, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    gsap.to(envelopeGroup.rotation, { x: 0.05, y: 0.2, duration: 5, repeat: -1, yoyo: true, ease: "sine.inOut" });
 }
 
 function openLetter() {
     isLetterOpen = true;
     gsap.killTweensOf(envelopeGroup.position);
     gsap.killTweensOf(envelopeGroup.rotation);
+
     const tl = gsap.timeline();
-    tl.to(envelopeFlap.rotation, { x: Math.PI * 0.9, duration: 0.9, ease: "power2.inOut" });
-    tl.to(letterMesh.position, { y: 2.5, z: 0.5, duration: 1, ease: "power2.out" }, "-=0.3");
-    tl.to(envelopeGroup.position, { y: -4, duration: 1.2, ease: "power2.inOut" }, "-=0.6");
-    tl.to(letterMesh.position, { y: 3.5, z: 3, duration: 1.2, ease: "power2.inOut" }, "-=1.2");
-    tl.to(letterMesh.scale, { x: 1.6, y: 1.6, duration: 1.2, ease: "power2.inOut" }, "-=1.2");
+    // Rotate the pivot instead of the mesh directly
+    tl.to(envelopeFlap.userData.pivot.rotation, { x: Math.PI * 0.85, duration: 1, ease: "back.inOut(1.5)" });
+    tl.to(letterMesh.position, { y: 2.8, z: 0.5, duration: 1.2, ease: "power2.out" }, "-=0.4");
+    
+    tl.to(envelopeGroup.position, { y: -5, z: -2, duration: 1.5, ease: "power2.inOut" }, "-=0.8");
+    tl.to(letterMesh.position, { y: 4, z: 3.5, duration: 1.5, ease: "power2.inOut" }, "-=1.5");
+    tl.to(letterMesh.scale, { x: 1.7, y: 1.7, duration: 1.5, ease: "power2.inOut" }, "-=1.5");
+
     tl.call(() => {
-        if (uiOverlay) { uiOverlay.classList.remove('hidden'); setTimeout(() => uiOverlay.classList.add('visible'), 50); }
+        uiOverlay.classList.remove('hidden');
+        setTimeout(() => uiOverlay.classList.add('visible'), 50);
     });
 }
 
 function onAmeiClick() {
-    if (uiOverlay) uiOverlay.classList.remove('visible');
+    uiOverlay.classList.remove('visible');
     const tl = gsap.timeline();
-    tl.to(letterMesh.scale, { x: 1, y: 1, duration: 0.8, ease: "power2.in" });
-    tl.to(letterMesh.position, { y: 0, z: 0.05, duration: 0.8, ease: "power2.in" }, "-=0.8");
-    tl.to(envelopeGroup.position, { y: 0, duration: 0.8, ease: "power2.in" }, "-=0.8");
-    tl.to(envelopeFlap.rotation, { x: 0, duration: 0.6, ease: "power2.inOut" });
-    tl.to(envelopeGroup.scale, { x: 0, y: 0, z: 0, duration: 0.8, ease: "back.in(1.5)" });
+    tl.to(letterMesh.scale, { x: 1, y: 1, duration: 1, ease: "power2.in" });
+    tl.to(letterMesh.position, { y: 0, z: 0.04, duration: 1, ease: "power2.in" }, "-=1");
+    tl.to(envelopeGroup.position, { y: 0, z: 0, duration: 1, ease: "power2.in" }, "-=1");
+    tl.to(envelopeFlap.userData.pivot.rotation, { x: 0, duration: 0.7, ease: "power2.inOut" });
+    tl.to(envelopeGroup.scale, { x: 0, y: 0, z: 0, duration: 0.8, ease: "back.in(1.2)" });
     tl.call(() => {
         createBurst();
         setTimeout(() => {
-            if (finalReveal) { finalReveal.classList.remove('hidden'); setTimeout(() => finalReveal.classList.add('visible'), 50); }
+            finalReveal.classList.remove('hidden');
+            setTimeout(() => finalReveal.classList.add('visible'), 50);
         }, 600);
     });
 }
 
+function animate() {
+    requestAnimationFrame(animate);
+    heartsBackground.forEach(h => { h.position.y += h.userData.speed; h.rotation.z += 0.01; if(h.position.y > 10) resetHeart(h); });
+    for(let i=particles.length-1; i>=0; i--){
+        const p = particles[i]; p.position.add(p.userData.velocity); p.rotation.x+=0.02; p.material.opacity-=0.005;
+        if(p.material.opacity<=0){ scene.remove(p); particles.splice(i,1); }
+    }
+    renderer.render(scene, camera);
+}
+
+function resetHeart(h) {
+    h.position.set((Math.random()-0.5)*20, -10, (Math.random()-0.5)*15);
+    h.scale.setScalar(Math.random()*0.2+0.1);
+    h.userData.speed = Math.random()*0.02+0.02;
+    h.material.opacity = Math.random()*0.4+0.1;
+}
+
+function createBackgroundHearts() {
+    const s = new THREE.Shape();
+    s.moveTo(0,0); s.bezierCurveTo(0,0.5,0.5,1,1,1); s.bezierCurveTo(2,1,2,0,1,-1); s.lineTo(0,-2); s.lineTo(-1,-1); s.bezierCurveTo(-2,0,-2,1,-1,1); s.bezierCurveTo(-0.5,1,0,0.5,0,0);
+    const geo = new THREE.ShapeGeometry(s);
+    for(let i=0; i<40; i++){
+        const h = new THREE.Mesh(geo, new THREE.MeshPhongMaterial({color: 0xff4d4d, transparent: true, opacity: 0.3}));
+        resetHeart(h); scene.add(h); heartsBackground.push(h);
+    }
+}
+
+function onWindowResize() { camera.aspect = window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); }
+
+function onDocumentMouseDown(e) {
+    if(isLetterOpen) return;
+    const x = e.clientX || (e.touches && e.touches[0].clientX);
+    const y = e.clientY || (e.touches && e.touches[0].clientY);
+    if(x === undefined) return;
+    mouse.x = (x/window.innerWidth)*2-1; mouse.y = -(y/window.innerHeight)*2+1;
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(envelopeGroup.children, true);
+    if(intersects.length > 0) openLetter();
+}
+
 function createBurst() {
-    const colors = [0xff4d4d, 0xff9999, 0xff1a1a, 0xe60000, 0xff8080];
-    const heartShape = new THREE.Shape();
-    heartShape.moveTo(0, 0);
-    heartShape.bezierCurveTo(0, 0.5, 0.5, 1, 1, 1);
-    heartShape.bezierCurveTo(2, 1, 2, 0, 1, -1);
-    heartShape.lineTo(0, -2); heartShape.lineTo(-1, -1);
-    heartShape.bezierCurveTo(-2, 0, -2, 1, -1, 1);
-    heartShape.bezierCurveTo(-0.5, 1, 0, 0.5, 0, 0);
-    const heartGeo = new THREE.ShapeGeometry(heartShape);
-    const balloonGeo = new THREE.SphereGeometry(0.3, 16, 16);
-    for (let i = 0; i < 80; i++) {
-        const isHeart = Math.random() > 0.4;
-        const color = colors[Math.floor(Math.random() * colors.length)];
-        const material = new THREE.MeshPhongMaterial({ color: color, transparent: true, opacity: 1 });
-        const particle = new THREE.Mesh(isHeart ? heartGeo : balloonGeo, material);
-        particle.position.set((Math.random() - 0.5) * 4, -6, (Math.random() - 0.5) * 6);
-        particle.scale.setScalar(Math.random() * 0.4 + 0.2);
-        particle.userData.velocity = new THREE.Vector3((Math.random() - 0.5) * 0.08, Math.random() * 0.15 + 0.08, (Math.random() - 0.5) * 0.08);
-        scene.add(particle);
-        particles.push(particle);
+    const colors = [0xff4d4d, 0xff9999, 0xff1a1a, 0xe60000];
+    const s = new THREE.Shape(); s.moveTo(0,0); s.bezierCurveTo(0,0.5,0.5,1,1,1); s.bezierCurveTo(2,1,2,0,1,-1); s.lineTo(0,-2); s.lineTo(-1,-1); s.bezierCurveTo(-2,0,-2,1,-1,1); s.bezierCurveTo(-0.5,1,0,0.5,0,0);
+    const hG = new THREE.ShapeGeometry(s); const bG = new THREE.SphereGeometry(0.3, 16, 16);
+    for(let i=0; i<100; i++){
+        const p = new THREE.Mesh(Math.random()>0.4?hG:bG, new THREE.MeshPhongMaterial({color: colors[Math.floor(Math.random()*colors.length)], transparent: true}));
+        p.position.set((Math.random()-0.5)*4, -6, (Math.random()-0.5)*6);
+        p.scale.setScalar(Math.random()*0.4+0.2);
+        p.userData.velocity = new THREE.Vector3((Math.random()-0.5)*0.1, Math.random()*0.15+0.1, (Math.random()-0.5)*0.1);
+        scene.add(p); particles.push(p);
     }
 }
 
