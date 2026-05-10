@@ -74,43 +74,42 @@ body {
         repeating-linear-gradient(var(--letter-bg), var(--letter-bg) 24px, var(--line-color) 24px, var(--line-color) 25px);
 }
 
-#ui-overlay.visible #letter-window {
-    transform: translateY(0) scale(1);
+.letter-content {
+    font-family: 'Dancing Script', cursive;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    overflow: hidden; /* Prevent parent from scrolling */
 }
 
 .scroll-area {
     flex: 1;
     overflow-y: auto;
     padding-right: 15px;
-    margin-bottom: 15px;
-    min-height: 0; 
+    margin-bottom: 10px;
+    min-height: 0; /* Critical for flex scrolling */
     scrollbar-width: thin;
     scrollbar-color: var(--margin-color) transparent;
 }
 
-.scroll-area::-webkit-scrollbar {
-    width: 6px;
-}
-
-.scroll-area::-webkit-scrollbar-thumb {
-    background-color: var(--margin-color);
-    border-radius: 10px;
-}
-
 #scroll-indicator {
     position: absolute;
-    left: 15px;
-    bottom: 80px;
+    left: 10px; /* Positioned on the left margin area */
+    bottom: 50%;
+    transform: translateY(50%);
     color: var(--primary-red);
-    font-size: 1.2rem;
+    font-size: 1.5rem;
     animation: bounce 1.5s infinite;
     pointer-events: none;
-    z-index: 30;
+    z-index: 35;
+    display: none; /* Controlled by JS */
 }
 
 @keyframes bounce {
-    0%, 100% { transform: translateY(0); opacity: 0.5; }
-    50% { transform: translateY(10px); opacity: 1; }
+    0%, 100% { transform: translateY(0); opacity: 0.3; }
+    50% { transform: translateY(15px); opacity: 1; }
 }
 
 #final-reveal {
