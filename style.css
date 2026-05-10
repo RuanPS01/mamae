@@ -46,7 +46,7 @@ body {
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.8s ease;
-    padding: 20px;
+    padding: 10px;
 }
 
 #ui-overlay.visible {
@@ -55,11 +55,11 @@ body {
 }
 
 #letter-window {
-    width: 100%;
-    max-width: 450px;
-    max-height: 85dvh;
+    width: 95vw;
+    max-width: 550px;
+    max-height: 88dvh;
     background-color: var(--letter-bg);
-    padding: 30px 20px 25px 45px;
+    padding: 30px 10px 20px 45px;
     box-shadow: 0 30px 60px rgba(0,0,0,0.5);
     border-radius: 4px;
     position: relative;
@@ -74,6 +74,10 @@ body {
         repeating-linear-gradient(var(--letter-bg), var(--letter-bg) 24px, var(--line-color) 24px, var(--line-color) 25px);
 }
 
+#ui-overlay.visible #letter-window {
+    transform: translateY(0) scale(1);
+}
+
 .letter-content {
     font-family: 'Dancing Script', cursive;
     color: #333;
@@ -81,30 +85,38 @@ body {
     flex-direction: column;
     height: 100%;
     width: 100%;
-    overflow: hidden; /* Prevent parent from scrolling */
+    overflow: hidden;
 }
 
 .scroll-area {
     flex: 1;
-    overflow-y: auto;
+    overflow-y: scroll;
     padding-right: 15px;
     margin-bottom: 10px;
-    min-height: 0; /* Critical for flex scrolling */
+    min-height: 0; 
     scrollbar-width: thin;
     scrollbar-color: var(--margin-color) transparent;
 }
 
+.scroll-area::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scroll-area::-webkit-scrollbar-thumb {
+    background-color: var(--margin-color);
+    border-radius: 10px;
+}
+
 #scroll-indicator {
     position: absolute;
-    left: 10px; /* Positioned on the left margin area */
-    bottom: 50%;
-    transform: translateY(50%);
+    left: 10px;
+    bottom: 30px;
     color: var(--primary-red);
     font-size: 1.5rem;
     animation: bounce 1.5s infinite;
     pointer-events: none;
     z-index: 35;
-    display: none; /* Controlled by JS */
+    display: none;
 }
 
 @keyframes bounce {
@@ -160,11 +172,6 @@ body {
     background-color: #eee;
 }
 
-.letter-content {
-    font-family: 'Dancing Script', cursive;
-    color: #333;
-}
-
 .letter-content h2 {
     color: var(--primary-red);
     margin-bottom: 20px;
@@ -190,8 +197,8 @@ body {
     font-size: 1.1rem;
     margin-top: -5px;
     margin-bottom: 10px;
-    box-shadow: 0 10px 20px rgba(204, 0, 0, 0.4);
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
+    box-shadow: none;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     text-transform: uppercase;
     letter-spacing: 1px;
     outline: none;
@@ -200,8 +207,7 @@ body {
 }
 
 #btn-amei:hover {
-    transform: scale(1.05) translateY(-3px);
-    box-shadow: 0 15px 35px rgba(204, 0, 0, 0.5);
+    transform: scale(1.05);
 }
 
 #btn-amei:active {
