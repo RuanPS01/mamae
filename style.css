@@ -136,6 +136,52 @@ body {
     background-color: #eee; /* Placeholder bg */
 }
 
+.letter-content {
+    font-family: 'Dancing Script', cursive;
+    color: #333;
+}
+
+.letter-content h2 {
+    color: var(--primary-red);
+    margin-bottom: 20px;
+    font-size: clamp(1.8rem, 6vw, 2.5rem);
+}
+
+.letter-content p {
+    font-size: clamp(1.2rem, 4.5vw, 1.6rem);
+    line-height: 25px;
+    margin-bottom: 25px;
+}
+
+#btn-amei {
+    display: block;
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(135deg, #ff4d4d 0%, #cc0000 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.3rem;
+    margin-top: 10px;
+    box-shadow: 0 10px 25px rgba(204, 0, 0, 0.4);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#btn-amei:hover {
+    transform: scale(1.05) translateY(-3px);
+    box-shadow: 0 15px 35px rgba(204, 0, 0, 0.5);
+}
+
+#btn-amei:active {
+    transform: scale(0.98);
+}
+
 #love-message {
     color: white;
     font-size: clamp(2.5rem, 10vw, 5rem);
