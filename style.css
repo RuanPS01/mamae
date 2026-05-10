@@ -149,25 +149,25 @@ body {
 }
 
 .letter-content p {
-    font-size: clamp(1.2rem, 4.5vw, 1.6rem);
-    line-height: 25px;
-    margin-bottom: 25px;
+    font-size: clamp(1.1rem, 4vw, 1.4rem);
+    line-height: 22px; /* Reduced from 25px */
+    margin-bottom: 15px; /* Reduced margin */
 }
 
 #btn-amei {
     display: block;
     width: 100%;
-    padding: 16px;
+    padding: 14px; /* Slightly smaller padding */
     background: linear-gradient(135deg, #ff4d4d 0%, #cc0000 100%);
     color: white;
     border: none;
     border-radius: 50px;
     cursor: pointer;
     font-weight: bold;
-    font-size: 1.2rem;
-    margin-top: 5px;
-    margin-bottom: 5px;
-    box-shadow: 0 10px 25px rgba(204, 0, 0, 0.4);
+    font-size: 1.1rem;
+    margin-top: -5px; /* Negative margin to pull it up */
+    margin-bottom: 10px;
+    box-shadow: 0 10px 20px rgba(204, 0, 0, 0.4);
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
     text-transform: uppercase;
     letter-spacing: 1px;
