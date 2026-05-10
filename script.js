@@ -164,13 +164,34 @@ function openLetter() {
     tl.to(envelopeGroup.position, { y: -5, z: -2, duration: 1.5, ease: "power2.inOut" }, "-=0.8");
     tl.to(letterMesh.position, { y: 4, z: 3.5, duration: 1.5, ease: "power2.inOut" }, "-=1.5");
     tl.to(letterMesh.scale, { x: 1.7, y: 1.7, duration: 1.5, ease: "power2.inOut" }, "-=1.5");
-
-    tl.call(() => {
+tl.call(() => {
+    if (uiOverlay) {
         uiOverlay.classList.remove('hidden');
-        setTimeout(() => uiOverlay.classList.add('visible'), 50);
-    });
-}
+        setTimeout(() => {
+            uiOverlay.classList.add('visible');
 
+            // Show/hide scroll indicator based on actual content height
+            const scrollArea = uiOverlay.querySelector('.scroll-area');
+            const indicator = document.getElementById('scroll-indicator');
+            if (scrollArea && indicator) {
+                if (scrollArea.scrollHeight > scrollArea.clientHeight) {
+                    indicator.style.display = 'block';
+                } else {
+                    indicator.style.display = 'none';
+                }
+
+                scrollArea.addEventListener('scroll', () => {
+                    if (scrollArea.scrollTop > 20) {
+                        indicator.style.opacity = '0';
+                    } else {
+                        indicator.style.opacity = '1';
+                    }
+                });
+            }
+        }, 50);
+    }
+});
+}
 function onAmeiClick() {
     uiOverlay.classList.remove('visible');
     const tl = gsap.timeline();

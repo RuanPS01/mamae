@@ -80,15 +80,42 @@ body {
 #ui-overlay.visible #letter-window {
     transform: translateY(0) scale(1);
 }
-
 .scroll-area {
     flex: 1;
     overflow-y: auto;
     padding-right: 15px;
     margin-bottom: 15px;
     min-height: 0; 
+    scrollbar-width: thin;
+    scrollbar-color: var(--margin-color) transparent;
 }
 
+.scroll-area::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scroll-area::-webkit-scrollbar-thumb {
+    background-color: var(--margin-color);
+    border-radius: 10px;
+}
+
+#scroll-indicator {
+    position: absolute;
+    left: 15px;
+    bottom: 80px;
+    color: var(--primary-red);
+    font-size: 1.2rem;
+    animation: bounce 1.5s infinite;
+    pointer-events: none;
+    z-index: 30;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); opacity: 0.5; }
+    50% { transform: translateY(10px); opacity: 1; }
+}
+
+#btn-amei {
 /* Final Reveal */
 #final-reveal {
     position: fixed;
