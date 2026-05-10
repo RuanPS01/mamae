@@ -9,13 +9,13 @@ let heartsBackground = [];
 let particles = [];
 let isLetterOpen = false;
 
-// UI Elements
-const uiOverlay = document.getElementById('ui-overlay');
-const btnAmei = document.getElementById('btn-amei');
-const finalReveal = document.getElementById('final-reveal');
+// UI Elements (initialized in init)
+let uiOverlay, btnAmei, finalReveal;
 
 // Initialize
 function init() {
+    console.log("Initializing Three.js scene...");
+    
     // 1. Scene Setup
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x4a0404);
@@ -23,34 +23,57 @@ function init() {
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.z = 5;
 
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    document.getElementById('canvas-container').appendChild(renderer.domElement);
+    try {
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        
+        const container = document.getElementById('canvas-container');
+        if (!container) {
+            console.error("Canvas container not found!");
+            return;
+        }
+        container.innerHTML = ''; // Clear any existing content
+        container.appendChild(renderer.domElement);
+    } catch (e) {
+        console.error("Renderer initialization failed:", e);
+        return;
+    }
 
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2();
 
     // 2. Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambientLight);
 
     const pointLight = new THREE.PointLight(0xffffff, 1);
     pointLight.position.set(5, 5, 5);
     scene.add(pointLight);
 
-    // 3. Create Objects
+    // 3. UI Elements
+    uiOverlay = document.getElementById('ui-overlay');
+    btnAmei = document.getElementById('btn-amei');
+    finalReveal = document.getElementById('final-reveal');
+
+    if (btnAmei) {
+        btnAmei.addEventListener('click', onAmeiClick);
+    }
+
+    // 4. Create Objects
     createBackgroundHearts();
     createEnvelope();
     
-    // 4. Events
+    // 5. Events
     window.addEventListener('resize', onWindowResize);
     window.addEventListener('mousedown', onDocumentMouseDown);
-    window.addEventListener('touchstart', (e) => onDocumentMouseDown(e.touches[0]), {passive: false});
+    window.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) {
+            onDocumentMouseDown(e.touches[0]);
+        }
+    }, {passive: false});
     
-    btnAmei.addEventListener('click', onAmeiClick);
-
-    // 5. Animation Loop
+    // 6. Animation Loop
     animate();
 }
 
@@ -68,13 +91,13 @@ function createBackgroundHearts() {
 
     const geometry = new THREE.ShapeGeometry(heartShape);
     const material = new THREE.MeshPhongMaterial({ 
-        color: 0xff0000, 
+        color: 0xff3333, 
         transparent: true, 
         opacity: 0.3,
         side: THREE.DoubleSide 
     });
 
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 30; i++) {
         const heart = new THREE.Mesh(geometry, material.clone());
         resetHeart(heart);
         scene.add(heart);
@@ -84,9 +107,9 @@ function createBackgroundHearts() {
 
 function resetHeart(heart) {
     heart.position.set(
-        (Math.random() - 0.5) * 15,
+        (Math.random() - 0.5) * 20,
         -10 - Math.random() * 10,
-        (Math.random() - 0.5) * 10
+        (Math.random() - 0.5) * 15
     );
     heart.scale.setScalar(Math.random() * 0.2 + 0.1);
     heart.userData.speed = Math.random() * 0.02 + 0.01;
@@ -105,7 +128,7 @@ function createEnvelope() {
     const backMesh = new THREE.Mesh(backGeo, envelopeMat);
     envelopeGroup.add(backMesh);
 
-    // Pocket (Bottom & Sides) - Simplified as one plane with slightly different color
+    // Pocket (simplified front)
     const pocketGeo = new THREE.PlaneGeometry(3.5, 2.3);
     const pocketMesh = new THREE.Mesh(pocketGeo, pocketMat);
     pocketMesh.position.z = 0.05;
@@ -114,7 +137,6 @@ function createEnvelope() {
     // Top Flap
     const flapGeo = new THREE.PlaneGeometry(3.5, 1.8);
     envelopeFlap = new THREE.Mesh(flapGeo, flapMat);
-    // Align top of flap to top of envelope and set pivot point
     envelopeFlap.geometry.translate(0, -0.9, 0); 
     envelopeFlap.position.y = 1.15;
     envelopeFlap.position.z = 0.06;
@@ -132,19 +154,19 @@ function createEnvelope() {
     // Initial floating animation
     gsap.to(envelopeGroup.position, {
         y: 0.3,
-        duration: 2,
+        duration: 2.5,
         repeat: -1,
         yoyo: true,
-        ease: "power1.inOut"
+        ease: "sine.inOut"
     });
     
     gsap.to(envelopeGroup.rotation, {
-        x: 0.1,
+        x: 0.05,
         y: 0.1,
-        duration: 3,
+        duration: 3.5,
         repeat: -1,
         yoyo: true,
-        ease: "power1.inOut"
+        ease: "sine.inOut"
     });
 }
 
@@ -157,11 +179,12 @@ function animate() {
     heartsBackground.forEach(heart => {
         heart.position.y += heart.userData.speed;
         heart.rotation.y += 0.01;
-        if (heart.position.y > 10) resetHeart(heart);
+        if (heart.position.y > 12) resetHeart(heart);
     });
 
     // Particles animation
-    particles.forEach((p, i) => {
+    for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
         p.position.add(p.userData.velocity);
         p.rotation.x += 0.02;
         p.rotation.y += 0.02;
@@ -170,22 +193,29 @@ function animate() {
             scene.remove(p);
             particles.splice(i, 1);
         }
-    });
+    }
 
     renderer.render(scene, camera);
 }
 
 function onWindowResize() {
+    if (!camera || !renderer) return;
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
 function onDocumentMouseDown(event) {
-    if (isLetterOpen) return;
+    if (isLetterOpen || !envelopeGroup) return;
 
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    // Support both mouse and touch
+    const clientX = event.clientX || (event.touches && event.touches[0].clientX);
+    const clientY = event.clientY || (event.touches && event.touches[0].clientY);
+
+    if (clientX === undefined) return;
+
+    mouse.x = (clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(clientY / window.innerHeight) * 2 + 1;
 
     raycaster.setFromCamera(mouse, camera);
     const intersects = raycaster.intersectObjects(envelopeGroup.children, true);
@@ -198,32 +228,33 @@ function onDocumentMouseDown(event) {
 function openLetter() {
     isLetterOpen = true;
     
-    // Stop floating animation on the group if we want a clean state
     gsap.killTweensOf(envelopeGroup.position);
     gsap.killTweensOf(envelopeGroup.rotation);
 
     const tl = gsap.timeline();
 
     // 1. Open Flap
-    tl.to(envelopeFlap.rotation, { x: Math.PI * 0.8, duration: 0.8, ease: "power2.inOut" });
+    tl.to(envelopeFlap.rotation, { x: Math.PI * 0.85, duration: 0.8, ease: "power2.inOut" });
 
     // 2. Slide Letter Up
     tl.to(letterMesh.position, { y: 2.5, z: 0.2, duration: 1, ease: "power2.out" }, "-=0.2");
 
     // 3. Bring Letter Forward & Move Envelope Down
-    tl.to(envelopeGroup.position, { y: -3, duration: 1, ease: "power2.inOut" }, "-=0.5");
-    tl.to(letterMesh.position, { y: 3.5, z: 2.5, duration: 1, ease: "power2.inOut" }, "-=1");
-    tl.to(letterMesh.scale, { x: 1.5, y: 1.5, duration: 1, ease: "power2.inOut" }, "-=1");
+    tl.to(envelopeGroup.position, { y: -4, duration: 1.2, ease: "power2.inOut" }, "-=0.5");
+    tl.to(letterMesh.position, { y: 3.5, z: 3, duration: 1.2, ease: "power2.inOut" }, "-=1.2");
+    tl.to(letterMesh.scale, { x: 1.6, y: 1.6, duration: 1.2, ease: "power2.inOut" }, "-=1.2");
 
     // 4. Show HTML UI
     tl.call(() => {
-        uiOverlay.classList.remove('hidden');
-        setTimeout(() => uiOverlay.classList.add('visible'), 50);
+        if (uiOverlay) {
+            uiOverlay.classList.remove('hidden');
+            setTimeout(() => uiOverlay.classList.add('visible'), 50);
+        }
     });
 }
 
 function onAmeiClick() {
-    uiOverlay.classList.remove('visible');
+    if (uiOverlay) uiOverlay.classList.remove('visible');
     
     const tl = gsap.timeline();
 
@@ -233,26 +264,26 @@ function onAmeiClick() {
     tl.to(envelopeGroup.position, { y: 0, duration: 0.8, ease: "power2.in" }, "-=0.8");
 
     // 2. Close Flap
-    tl.to(envelopeFlap.rotation, { x: 0, duration: 0.5, ease: "power2.inOut" });
+    tl.to(envelopeFlap.rotation, { x: 0, duration: 0.6, ease: "power2.inOut" });
 
     // 3. Envelope Disappears
-    tl.to(envelopeGroup.scale, { x: 0, y: 0, z: 0, duration: 0.8, ease: "back.in(1.7)" });
-    tl.to(envelopeGroup.position, { y: -5, duration: 0.8 }, "-=0.8");
+    tl.to(envelopeGroup.scale, { x: 0, y: 0, z: 0, duration: 0.8, ease: "back.in(1.5)" });
 
     // 4. Burst of Hearts and Balloons
     tl.call(() => {
         createBurst();
         setTimeout(() => {
-            finalReveal.classList.remove('hidden');
-            setTimeout(() => finalReveal.classList.add('visible'), 50);
-        }, 500);
+            if (finalReveal) {
+                finalReveal.classList.remove('hidden');
+                setTimeout(() => finalReveal.classList.add('visible'), 50);
+            }
+        }, 600);
     });
 }
 
 function createBurst() {
     const colors = [0xff4d4d, 0xff9999, 0xff1a1a, 0xe60000, 0xff8080];
     
-    // Heart Shape
     const heartShape = new THREE.Shape();
     heartShape.moveTo(0, 0);
     heartShape.bezierCurveTo(0, 0.5, 0.5, 1, 1, 1);
@@ -262,8 +293,6 @@ function createBurst() {
     heartShape.bezierCurveTo(-2, 0, -2, 1, -1, 1);
     heartShape.bezierCurveTo(-0.5, 1, 0, 0.5, 0, 0);
     const heartGeo = new THREE.ShapeGeometry(heartShape);
-
-    // Balloon Shape (Sphere)
     const balloonGeo = new THREE.SphereGeometry(0.3, 16, 16);
 
     for (let i = 0; i < 80; i++) {
@@ -278,17 +307,17 @@ function createBurst() {
         const particle = new THREE.Mesh(isHeart ? heartGeo : balloonGeo, material);
         
         particle.position.set(
-            (Math.random() - 0.5) * 2,
-            -5,
-            (Math.random() - 0.5) * 5
+            (Math.random() - 0.5) * 4,
+            -6,
+            (Math.random() - 0.5) * 6
         );
         
-        particle.scale.setScalar(Math.random() * 0.5 + 0.2);
+        particle.scale.setScalar(Math.random() * 0.4 + 0.2);
         
         particle.userData.velocity = new THREE.Vector3(
-            (Math.random() - 0.5) * 0.1,
-            Math.random() * 0.15 + 0.05,
-            (Math.random() - 0.5) * 0.1
+            (Math.random() - 0.5) * 0.08,
+            Math.random() * 0.15 + 0.08,
+            (Math.random() - 0.5) * 0.08
         );
 
         scene.add(particle);
@@ -296,5 +325,5 @@ function createBurst() {
     }
 }
 
-// Start
-init();
+// Start when everything is loaded
+window.onload = init;
