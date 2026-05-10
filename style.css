@@ -60,7 +60,7 @@ body {
     max-width: 450px;
     max-height: 90dvh; /* Ensure it fits on screen */
     background-color: var(--letter-bg);
-    padding: 30px 15px 25px 40px;
+    padding: 35px 20px 45px 45px;
     box-shadow: 0 30px 60px rgba(0,0,0,0.5);
     border-radius: 4px;
     position: relative;
@@ -82,8 +82,8 @@ body {
 .scroll-area {
     flex: 1;
     overflow-y: auto;
-    padding-right: 10px;
-    margin-bottom: 15px;
+    padding-right: 15px;
+    margin-bottom: 20px;
     min-height: 0; /* Important for flex child overflow */
 }
 
@@ -165,6 +165,7 @@ body {
     font-weight: bold;
     font-size: 1.3rem;
     margin-top: 10px;
+    margin-bottom: 5px;
     box-shadow: 0 10px 25px rgba(204, 0, 0, 0.4);
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
     text-transform: uppercase;
