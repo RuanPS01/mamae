@@ -58,9 +58,9 @@ body {
 #letter-window {
     width: 100%;
     max-width: 450px;
-    max-height: 90dvh; /* Ensure it fits on screen */
+    max-height: 85dvh;
     background-color: var(--letter-bg);
-    padding: 35px 20px 45px 45px;
+    padding: 30px 20px 25px 45px;
     box-shadow: 0 30px 60px rgba(0,0,0,0.5);
     border-radius: 4px;
     position: relative;
@@ -68,6 +68,7 @@ body {
     flex-direction: column;
     transform: translateY(50px) scale(0.9);
     transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.8s;
+    overflow: hidden;
     
     /* Paper Texture & Lines */
     background-image: 
@@ -83,8 +84,8 @@ body {
     flex: 1;
     overflow-y: auto;
     padding-right: 15px;
-    margin-bottom: 20px;
-    min-height: 0; /* Important for flex child overflow */
+    margin-bottom: 15px;
+    min-height: 0; 
 }
 
 /* Final Reveal */
@@ -156,15 +157,15 @@ body {
 #btn-amei {
     display: block;
     width: 100%;
-    padding: 18px;
+    padding: 16px;
     background: linear-gradient(135deg, #ff4d4d 0%, #cc0000 100%);
     color: white;
     border: none;
     border-radius: 50px;
     cursor: pointer;
     font-weight: bold;
-    font-size: 1.3rem;
-    margin-top: 10px;
+    font-size: 1.2rem;
+    margin-top: 5px;
     margin-bottom: 5px;
     box-shadow: 0 10px 25px rgba(204, 0, 0, 0.4);
     transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
@@ -172,6 +173,7 @@ body {
     letter-spacing: 1px;
     outline: none;
     -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
 }
 
 #btn-amei:hover {
