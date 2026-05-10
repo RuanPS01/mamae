@@ -208,7 +208,8 @@ body {
 }
 
 #btn-amei:hover {
-    transform: scale(1.05);
+    background: linear-gradient(135deg, #ff6666 0%, #e60000 100%);
+    filter: brightness(1.1);
 }
 
 #btn-amei:active {
